@@ -11,7 +11,7 @@ LLMShield is a lightweight security gateway that sits between an application and
 - Central policy precedence: block, then review, then redact, then allow.
 - Request PII redaction and response inspection before returning content.
 - Local deterministic mock provider for development without external calls.
-- Optional OpenAI-compatible upstream adapter.
+- Provider integration is intentionally disabled in this initial build; the request schema reserves an upstream URL field, but attempts to use it are rejected.
 - SQLite audit events; request/response content is not stored by the audit store.
 - Optional gateway API-key enforcement and request body limits.
 - Tests for core scanner and gateway behavior.
@@ -88,7 +88,7 @@ The compose configuration requires gateway authentication and keeps remote provi
 
 - Detection is heuristic. It can miss attacks and can flag benign text; never present it as a reliable semantic prompt-injection classifier.
 - Provider URLs are disabled for remote hosts by default. Enabling remote providers increases SSRF and data-exfiltration risk; use a strict egress allowlist and network controls. DNS validation in application code alone is not a complete SSRF defense.
-- The current optional upstream adapter is a compatibility starter, not a full provider-management layer. It does not yet implement retries, streaming, per-tenant quotas, or provider-specific response validation.
+- Real provider forwarding is not enabled yet. Before enabling it, implement a fixed upstream allowlist, robust SSRF protections, provider-specific response validation, and integration tests.
 - API-key authentication is a simple shared-secret baseline, not a complete identity or authorization system. Add rate limiting, TLS termination, secret rotation, and deployment-specific access controls before production use.
 - Audit events store decision metadata and findings, not raw prompt/response content. Findings may still reveal sensitive categories; protect the database and restrict audit access.
 - Redaction currently targets selected patterns only. It is not comprehensive anonymization.
