@@ -5,7 +5,7 @@ from app.audit import AuditStore
 from app.config import settings
 from app.models import ChatRequest, ChatResponse, HealthResponse
 from app.policy import decide
-from app.provider import ProviderError, complete_mock, complete_openai_compatible
+from app.provider import ProviderError, complete_mock
 from app.scanner import scan_text
 
 app = FastAPI(title='LLMShield', version='0.1.0')
@@ -34,8 +34,7 @@ async def chat_completions(payload: ChatRequest, x_api_key: str | None = Header(
         result = scan_text(message.content)
         findings.extend(result.findings)
         originals.append(message.content)
-        content = result.sanitized_text if message.role == 'user' else message.content
-        safe_messages.append(message.model_copy(update={'content': content}))
+        safe_messages.append(message.model_copy(update={'content': result.sanitized_text}))
     decision = decide(findings)
     provider = 'mock'
     if decision == 'block':
@@ -45,7 +44,6 @@ async def chat_completions(payload: ChatRequest, x_api_key: str | None = Header(
     else:
         try:
             if payload.provider_url:
-                # Remote provider access stays disabled until a dedicated allowlist is implemented.
                 raise HTTPException(status_code=403, detail='Upstream provider support is not enabled in this build.')
             answer = await complete_mock(payload.model, safe_messages)
         except ProviderError as exc:
