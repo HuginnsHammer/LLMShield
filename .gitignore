@@ -218,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# LLMShield local state and secrets
+*.sqlite3
+.env
