@@ -1,0 +1,16 @@
+services:
+  llmshield:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      LLMSHIELD_AUDIT_DB: /data/audit.sqlite3
+      LLMSHIELD_API_KEY: ${LLMSHIELD_API_KEY:?Set LLMSHIELD_API_KEY in your environment}
+      LLMSHIELD_REQUIRE_API_KEY: "true"
+      LLMSHIELD_ALLOW_REMOTE_PROVIDER: "false"
+    volumes:
+      - llmshield-data:/data
+    restart: unless-stopped
+
+volumes:
+  llmshield-data:
