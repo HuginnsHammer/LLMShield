@@ -11,6 +11,13 @@ services:
     volumes:
       - llmshield-data:/data
     restart: unless-stopped
+  dashboard:
+    build: ./frontend
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      - llmshield
+    restart: unless-stopped
 
 volumes:
   llmshield-data:
