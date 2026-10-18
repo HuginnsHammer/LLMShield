@@ -11,7 +11,7 @@ LLMShield is a lightweight security gateway that sits between an application and
 - Central policy precedence: block, then review, then redact, then allow.
 - Request PII redaction and response inspection before returning content.
 - Local deterministic mock provider for development without external calls.
-- Provider integration is intentionally disabled in this initial build; the request schema reserves an upstream URL field, but attempts to use it are rejected.
+- Real provider forwarding is intentionally disabled in this initial build; requests that specify an upstream URL are rejected.
 - SQLite audit events; request/response content is not stored by the audit store.
 - Optional gateway API-key enforcement and request body limits.
 - Tests for core scanner and gateway behavior.
