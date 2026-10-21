@@ -1,0 +1,16 @@
+# Optional policy overrides. Unspecified categories retain safe defaults.
+# Actions: allow, redact, block, review
+# Minimum severity: low, medium, high, critical
+categories:
+  prompt_injection:
+    action: block
+    minimum_severity: low
+  pii:
+    action: redact
+    minimum_severity: low
+  secret:
+    action: block
+    minimum_severity: low
+  policy:
+    action: review
+    minimum_severity: low

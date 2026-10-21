@@ -1,7 +1,9 @@
 """Environment-backed service configuration."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import os
 from typing import Literal
+
+from .rules import Category, CategoryRule, load_policy_rules
 
 
 def _flag(name: str, default: bool = False) -> bool:
@@ -22,6 +24,11 @@ class Settings:
     require_api_key: bool = _flag("LLMSHIELD_REQUIRE_API_KEY", False)
     api_key: str = os.getenv("LLMSHIELD_API_KEY", "")
     policy_mode: Literal["enforce", "monitor"] = _policy_mode()
+    policy_file: str = os.getenv("LLMSHIELD_POLICY_FILE", "")
+    policy_rules: dict[Category, CategoryRule] = field(init=False)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "policy_rules", load_policy_rules(self.policy_file or None))
 
 
 settings = Settings()

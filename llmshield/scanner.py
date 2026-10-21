@@ -2,6 +2,7 @@
 import re
 import unicodedata
 from .models import Finding, ScanResult
+from .rules import Category, CategoryRule, action_for
 
 _ZERO_WIDTH = dict.fromkeys(map(ord, "\u200b\u200c\u200d\ufeff\u2060"), None)
 _HOMOGLYPHS = str.maketrans({
@@ -52,7 +53,7 @@ def _quoted(text: str, start: int) -> bool:
     return False
 
 
-def scan_text(text: str) -> ScanResult:
+def scan_text(text: str, policy_rules: dict[Category, CategoryRule] | None = None) -> ScanResult:
     normalized, positions = _normalize(text)
     findings: list[Finding] = []
     for pattern in INJECTION_PATTERNS:
@@ -62,9 +63,8 @@ def scan_text(text: str) -> ScanResult:
             # Quoted examples and clearly defensive questions should not be auto-blocked.
             if _quoted(text, original_start):
                 continue
-            findings.append(Finding(detector="heuristic_injection", category="prompt_injection", severity="high", message="Possible instruction override or prompt extraction attempt.", action="block", start=original_start, end=original_end))
+            findings.append(Finding(detector="heuristic_injection", category="prompt_injection", severity="high", message="Possible instruction override or prompt extraction attempt.", action=action_for("prompt_injection", "high", policy_rules), start=original_start, end=original_end))
 
-    pii_spans: list[tuple[int, int]] = []
     for label, pattern in (("email", EMAIL), ("phone", PHONE)):
         for match in pattern.finditer(normalized):
             if label == "phone":
@@ -76,16 +76,16 @@ def scan_text(text: str) -> ScanResult:
                     continue
             start = positions[match.start()]
             end = positions[match.end() - 1] + 1
-            pii_spans.append((start, end))
-            findings.append(Finding(detector="regex_pii", category="pii", severity="medium", message=f"Possible {label} detected.", action="redact", start=start, end=end))
+            findings.append(Finding(detector="regex_pii", category="pii", severity="medium", message=f"Possible {label} detected.", action=action_for("pii", "medium", policy_rules), start=start, end=end))
 
     for label, pattern in SECRET_PATTERNS:
         for match in pattern.finditer(normalized):
             start = positions[match.start()]
             end = positions[match.end() - 1] + 1
-            findings.append(Finding(detector="regex_secret", category="secret", severity="critical", message=f"Possible {label} detected.", action="block", start=start, end=end))
+            findings.append(Finding(detector="regex_secret", category="secret", severity="critical", message=f"Possible {label} detected.", action=action_for("secret", "critical", policy_rules), start=start, end=end))
 
     sanitized = text
-    for start, end in sorted(set(pii_spans), reverse=True):
+    redaction_spans = {(f.start, f.end) for f in findings if f.action == "redact" and f.start is not None and f.end is not None}
+    for start, end in sorted(redaction_spans, reverse=True):
         sanitized = sanitized[:start] + "[REDACTED]" + sanitized[end:]
     return ScanResult(findings=findings, sanitized_text=sanitized, blocked=any(f.action == "block" for f in findings), review_required=any(f.action == "review" for f in findings))

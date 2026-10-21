@@ -21,7 +21,7 @@ Requires Python 3.11+. Fish users can activate the environment with `source .ven
 
 ~~~bash
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate.fish  # Fish shell; use activate for Bash/Zsh
 python -m pip install -e '.[dev]'
 uvicorn llmshield.main:app --reload
 ~~~
@@ -97,7 +97,7 @@ The harness reports precision, recall, false-positive rate, and false-negative r
 
 ## Configuration
 
-For initial rollout, set `LLMSHIELD_POLICY_MODE=monitor` to observe detector findings without enforcing blocks or redactions. This is useful for collecting false-positive examples, but it is **not a protective mode**. Use `enforce` when you want policy actions applied. The default is `enforce`; invalid values fail at startup.
+For policy customization, copy `policy.example.yaml` to `policy.yaml`. For Docker Compose, set `LLMSHIELD_POLICY_HOST_PATH=./policy.yaml` in your environment or `.env` file; Compose mounts that file read-only into the container. For a direct local run, set `LLMSHIELD_POLICY_FILE=policy.yaml`. YAML overrides are validated at startup; unknown categories, actions, fields, or severity values fail closed. Each category can set an `action` (`allow`, `redact`, `block`, or `review`) and `minimum_severity` (`low`, `medium`, `high`, or `critical`). The default rules remain block for prompt injection and secrets, redact for PII, and review for policy findings. Lower-severity findings than the configured threshold are treated as `allow`. Use `LLMSHIELD_POLICY_MODE=monitor` to observe findings without enforcing actions. This is useful for collecting false-positive examples, but it is **not a protective mode**. Use `enforce` when you want policy actions applied. The default is `enforce`; invalid values fail at startup.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
@@ -106,6 +106,7 @@ For initial rollout, set `LLMSHIELD_POLICY_MODE=monitor` to observe detector fin
 | LLMSHIELD_AUDIT_DB | llmshield-audit.sqlite3 | SQLite metadata database; :memory: is supported for tests |
 | LLMSHIELD_MAX_BODY_BYTES | 262144 | Maximum declared request body size |
 | LLMSHIELD_POLICY_MODE | enforce | `enforce` applies detector actions; `monitor` records findings but lets requests continue |
+| LLMSHIELD_POLICY_FILE | empty | Optional path to a validated YAML policy file; invalid files stop startup |
 
 Never commit credentials. Use a reverse proxy or deployment platform for request-size limits on chunked bodies, TLS, rate limits, and network policy.
 
