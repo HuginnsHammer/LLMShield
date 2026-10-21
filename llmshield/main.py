@@ -62,9 +62,13 @@ async def chat_completions(payload: ChatRequest, x_api_key: str | None = Header(
         output = scan_text(answer, settings.policy_rules)
         findings.extend(output.findings)
         output_decision = apply_mode(decide(findings), settings.policy_mode)
-        if output.blocked and settings.policy_mode == "enforce":
-            decision = "block"
-            answer = "Response blocked by LLMShield policy."
+        if output_decision in ("block", "review") and settings.policy_mode == "enforce":
+            decision = output_decision
+            answer = (
+                "Response blocked by LLMShield policy."
+                if decision == "block"
+                else "Response held for manual review; no response content was returned."
+            )
         else:
             answer = output.sanitized_text
             decision = output_decision
