@@ -4,17 +4,29 @@ build-backend = "hatchling.build"
 
 [project]
 name = "llmshield"
-version = "0.1.0"
+version = "0.2.0"
 description = "A lightweight security gateway for LLM applications"
 readme = "README.md"
 requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Edward" }]
+keywords = ["llm", "security", "prompt-injection", "privacy", "gateway"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Framework :: FastAPI",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Security",
+]
 dependencies = ["fastapi>=0.115,<1.0", "uvicorn[standard]>=0.30,<1.0", "httpx>=0.27,<1.0", "pydantic>=2.8,<3.0"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.6", "mypy>=1.11"]
+dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.6", "mypy>=1.11", "pip-audit>=2.7"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["app"]
+packages = ["llmshield"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

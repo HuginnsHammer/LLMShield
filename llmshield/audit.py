@@ -1,0 +1,66 @@
+import json
+import sqlite3
+import threading
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+
+class AuditStore:
+    """Store audit metadata only; never accept or persist prompt/response content."""
+
+    def __init__(self, path: str) -> None:
+        self.path = path
+        self._lock = threading.Lock()
+        self._memory_db: sqlite3.Connection | None = None
+        if path == ":memory:":
+            # Keep one connection alive so the in-memory database persists across calls.
+            self._memory_db = sqlite3.connect(":memory:", check_same_thread=False)
+        else:
+            Path(path).expanduser().parent.mkdir(parents=True, exist_ok=True)
+        with self._connection() as db:
+            db.execute("""CREATE TABLE IF NOT EXISTS audit_events (
+                id INTEGER PRIMARY KEY, created_at TEXT NOT NULL, request_id TEXT NOT NULL,
+                decision TEXT NOT NULL, provider TEXT NOT NULL, findings_json TEXT NOT NULL
+            )""")
+
+    def _connection(self):
+        return self._memory_db if self._memory_db is not None else sqlite3.connect(self.path, timeout=5)
+
+    def record(self, request_id: str, decision: str, provider: str, findings: list) -> int:
+        encoded = json.dumps([f.model_dump() if hasattr(f, "model_dump") else f for f in findings])
+        with self._lock:
+            db = self._connection()
+            try:
+                cur = db.execute(
+                    "INSERT INTO audit_events (created_at, request_id, decision, provider, findings_json) VALUES (?, ?, ?, ?, ?)",
+                    (datetime.now(timezone.utc).isoformat(), request_id, decision, provider, encoded),
+                )
+                db.commit()
+                return int(cur.lastrowid)
+            finally:
+                if db is not self._memory_db:
+                    db.close()
+
+    def list_events(self, limit: int = 50) -> list[dict[str, Any]]:
+        with self._lock:
+            db = self._connection()
+            try:
+                db.row_factory = sqlite3.Row
+                rows = db.execute(
+                    "SELECT id, created_at, request_id, decision, provider, findings_json FROM audit_events ORDER BY id DESC LIMIT ?",
+                    (max(1, min(limit, 200)),),
+                ).fetchall()
+                return [
+                    {"id": r["id"], "created_at": r["created_at"], "request_id": r["request_id"],
+                     "decision": r["decision"], "provider": r["provider"], "findings": json.loads(r["findings_json"])}
+                    for r in rows
+                ]
+            finally:
+                if db is not self._memory_db:
+                    db.close()
+
+    def close(self) -> None:
+        if self._memory_db is not None:
+            self._memory_db.close()
+            self._memory_db = None
