@@ -8,7 +8,7 @@ from . import __version__
 from .audit import AuditStore
 from .config import settings
 from .models import ChatRequest, ChatResponse, HealthResponse
-from .policy import decide
+from .policy import apply_mode, decide
 from .provider import complete_mock
 from .scanner import scan_text
 
@@ -51,7 +51,7 @@ async def chat_completions(payload: ChatRequest, x_api_key: str | None = Header(
         findings.extend(result.findings)
         safe_messages.append(message.model_copy(update={"content": result.sanitized_text}))
 
-    decision = decide(findings)
+    decision = apply_mode(decide(findings), settings.policy_mode)
     provider = "mock"
     if decision == "block":
         answer = "Request blocked by LLMShield policy."
@@ -61,12 +61,13 @@ async def chat_completions(payload: ChatRequest, x_api_key: str | None = Header(
         answer = await complete_mock(payload.model, safe_messages)
         output = scan_text(answer)
         findings.extend(output.findings)
-        if output.blocked:
+        output_decision = apply_mode(decide(findings), settings.policy_mode)
+        if output.blocked and settings.policy_mode == "enforce":
             decision = "block"
             answer = "Response blocked by LLMShield policy."
         else:
             answer = output.sanitized_text
-            decision = decide(findings)
+            decision = output_decision
 
     event_id = await run_in_threadpool(audit.record, request_id, decision, provider, findings)
     # OpenAI-compatible envelope. Usage is a documented estimate for the mock provider,
