@@ -9,7 +9,7 @@
 - Scans incoming messages and mock-provider output with transparent heuristic detectors.
 - Normalizes common Unicode obfuscation patterns before matching.
 - Detects selected prompt-injection phrases, email addresses, formatted phone numbers, and common secret formats.
-- Applies central policy precedence: block, review, redact, allow.
+- Applies central policy precedence: block, review, redact, allow, with an optional monitor-only mode.
 - Exposes a non-streaming OpenAI-style chat-completion response envelope with additional LLMShield policy metadata.
 - Can be used as a small Python library through `Shield().scan(text)` as well as a FastAPI service.
 - Records audit metadata and findings without storing raw prompts or model responses.
@@ -97,12 +97,15 @@ The harness reports precision, recall, false-positive rate, and false-negative r
 
 ## Configuration
 
+For initial rollout, set `LLMSHIELD_POLICY_MODE=monitor` to observe detector findings without enforcing blocks or redactions. This is useful for collecting false-positive examples, but it is **not a protective mode**. Use `enforce` when you want policy actions applied. The default is `enforce`; invalid values fail at startup.
+
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | LLMSHIELD_API_KEY | empty | Shared key for gateway/admin endpoints when auth is enabled; always required for audit access |
 | LLMSHIELD_REQUIRE_API_KEY | false | Require a key for chat requests |
 | LLMSHIELD_AUDIT_DB | llmshield-audit.sqlite3 | SQLite metadata database; :memory: is supported for tests |
 | LLMSHIELD_MAX_BODY_BYTES | 262144 | Maximum declared request body size |
+| LLMSHIELD_POLICY_MODE | enforce | `enforce` applies detector actions; `monitor` records findings but lets requests continue |
 
 Never commit credentials. Use a reverse proxy or deployment platform for request-size limits on chunked bodies, TLS, rate limits, and network policy.
 
