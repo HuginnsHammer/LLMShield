@@ -102,7 +102,7 @@ ruff check .
 mypy llmshield
 ~~~
 
-The harness reports precision, recall, false-positive rate, and false-negative rate over a small synthetic regression set. These numbers are not representative of real-world traffic and should not be compared with published benchmarks. A future public-dataset evaluation must pin dataset versions, verify licenses, and document labeling before broader claims are made.
+The harness reports precision, recall, false-positive rate, and false-negative rate separately for prompt-injection, PII, and secret detection. The synthetic cases include benign examples and known limitations; results are diagnostic, not a production security score. This small set is not representative of real-world traffic and should not be compared with published benchmarks. A future public-dataset evaluation must pin dataset versions, verify licenses, and document labeling before broader claims are made.
 
 ## Configuration
 
