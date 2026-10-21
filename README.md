@@ -11,6 +11,7 @@
 - Detects selected prompt-injection phrases, email addresses, formatted phone numbers, and common secret formats.
 - Applies central policy precedence: block, review, redact, allow.
 - Exposes a non-streaming OpenAI-style chat-completion response envelope with additional LLMShield policy metadata.
+- Can be used as a small Python library through `Shield().scan(text)` as well as a FastAPI service.
 - Records audit metadata and findings without storing raw prompts or model responses.
 - Includes a React dashboard, Docker Compose setup, regression tests, and a synthetic evaluation harness.
 
