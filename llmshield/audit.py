@@ -43,7 +43,9 @@ class AuditStore:
                     (datetime.now(timezone.utc).isoformat(), request_id, decision, provider, encoded),
                 )
                 db.commit()
-                return int(cur.lastrowid)
+                if cur.lastrowid is None:
+                    raise RuntimeError("SQLite did not return an audit event ID")
+                return cur.lastrowid
             finally:
                 if db is not self._memory_db:
                     db.close()
