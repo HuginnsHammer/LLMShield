@@ -8,8 +8,10 @@ services:
       LLMSHIELD_API_KEY: ${LLMSHIELD_API_KEY:?Set LLMSHIELD_API_KEY in your environment}
       LLMSHIELD_REQUIRE_API_KEY: "true"
       LLMSHIELD_ALLOW_REMOTE_PROVIDER: "false"
+      LLMSHIELD_POLICY_FILE: /etc/llmshield/policy.yaml
     volumes:
       - llmshield-data:/data
+      - ${LLMSHIELD_POLICY_HOST_PATH:-./policy.example.yaml}:/etc/llmshield/policy.yaml:ro
     restart: unless-stopped
   dashboard:
     build: ./frontend
