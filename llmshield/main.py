@@ -47,7 +47,7 @@ async def chat_completions(payload: ChatRequest, x_api_key: str | None = Header(
     safe_messages = []
     findings = []
     for message in payload.messages:
-        result = scan_text(message.content)
+        result = scan_text(message.content, settings.policy_rules)
         findings.extend(result.findings)
         safe_messages.append(message.model_copy(update={"content": result.sanitized_text}))
 
@@ -59,7 +59,7 @@ async def chat_completions(payload: ChatRequest, x_api_key: str | None = Header(
         answer = "Request held for manual review; no provider was called."
     else:
         answer = await complete_mock(payload.model, safe_messages)
-        output = scan_text(answer)
+        output = scan_text(answer, settings.policy_rules)
         findings.extend(output.findings)
         output_decision = apply_mode(decide(findings), settings.policy_mode)
         if output.blocked and settings.policy_mode == "enforce":
