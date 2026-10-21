@@ -17,14 +17,16 @@
 
 ## Try it in about a minute
 
-Requires Python 3.11+. Fish users can activate the environment with `source .venv/bin/activate.fish`; Bash/Zsh users can use `source .venv/bin/activate`.
+Requires Python 3.11+. These commands use Fish, which is the default shell on my development machine:
 
-~~~bash
+~~~fish
 python -m venv .venv
-source .venv/bin/activate.fish  # Fish shell; use activate for Bash/Zsh
+source .venv/bin/activate.fish
 python -m pip install -e '.[dev]'
 uvicorn llmshield.main:app --reload
 ~~~
+
+For Bash or Zsh, use `source .venv/bin/activate` instead.
 
 In another terminal, test a benign request:
 
@@ -59,6 +61,13 @@ Open http://localhost:5173. Vite proxies API calls to the backend on port 8000. 
 ## Docker Compose
 
 Set a strong key before starting the services:
+
+~~~fish
+set -x LLMSHIELD_API_KEY (python -c 'import secrets; print(secrets.token_urlsafe(32))')
+docker compose up --build
+~~~
+
+For Bash or Zsh, use:
 
 ~~~bash
 export LLMSHIELD_API_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(32))')"
