@@ -10,22 +10,28 @@ class AuditStore:
     """Store audit metadata only; never accept or persist prompt/response content."""
 
     def __init__(self, path: str) -> None:
-        self.path = path
+        self.path = path if path == ":memory:" else str(Path(path).expanduser())
         self._lock = threading.Lock()
         self._memory_db: sqlite3.Connection | None = None
-        if path == ":memory:":
-            # Keep one connection alive so the in-memory database persists across calls.
+        if self.path == ":memory:":
             self._memory_db = sqlite3.connect(":memory:", check_same_thread=False)
         else:
-            Path(path).expanduser().parent.mkdir(parents=True, exist_ok=True)
-        with self._connection() as db:
+            Path(self.path).parent.mkdir(parents=True, exist_ok=True)
+        db = self._connection()
+        try:
             db.execute("""CREATE TABLE IF NOT EXISTS audit_events (
                 id INTEGER PRIMARY KEY, created_at TEXT NOT NULL, request_id TEXT NOT NULL,
                 decision TEXT NOT NULL, provider TEXT NOT NULL, findings_json TEXT NOT NULL
             )""")
+            db.commit()
+        finally:
+            if db is not self._memory_db:
+                db.close()
 
-    def _connection(self):
-        return self._memory_db if self._memory_db is not None else sqlite3.connect(self.path, timeout=5)
+    def _connection(self) -> sqlite3.Connection:
+        if self._memory_db is not None:
+            return self._memory_db
+        return sqlite3.connect(self.path, timeout=5)
 
     def record(self, request_id: str, decision: str, provider: str, findings: list) -> int:
         encoded = json.dumps([f.model_dump() if hasattr(f, "model_dump") else f for f in findings])
