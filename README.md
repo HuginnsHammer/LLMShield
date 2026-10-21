@@ -21,7 +21,7 @@ Requires Python 3.11+. Fish users can activate the environment with `source .ven
 
 ~~~bash
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate.fish  # Fish shell; use activate for Bash/Zsh
 python -m pip install -e '.[dev]'
 uvicorn llmshield.main:app --reload
 ~~~
