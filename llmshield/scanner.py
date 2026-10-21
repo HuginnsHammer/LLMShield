@@ -60,7 +60,7 @@ def scan_text(text: str) -> ScanResult:
             original_start = positions[match.start()] if match.start() < len(positions) else 0
             original_end = positions[match.end() - 1] + 1 if match.end() and match.end() <= len(positions) else original_start
             # Quoted examples and clearly defensive questions should not be auto-blocked.
-            if _quoted(text, original_start) or DEFENSIVE_CONTEXT.search(text):
+            if _quoted(text, original_start):
                 continue
             findings.append(Finding(detector="heuristic_injection", category="prompt_injection", severity="high", message="Possible instruction override or prompt extraction attempt.", action="block", start=original_start, end=original_end))
 
