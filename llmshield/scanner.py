@@ -11,26 +11,26 @@ _HOMOGLYPHS = str.maketrans({
     "Р": "P", "С": "C", "Т": "T", "Х": "X", "І": "I",
 })
 INJECTION_PATTERNS = [
-    re.compile(r"ignore\\s+(?:all\\s+)?(?:previous|prior|above)\\s+instructions", re.I),
-    re.compile(r"disregard\\s+(?:everything|all|the instructions?).{0,50}(?:told|given|provided|said|earlier|before)", re.I),
-    re.compile(r"reveal\\s+(?:the\\s+)?(?:system prompt|hidden instructions)", re.I),
-    re.compile(r"(?:developer|system)\\s+message\\s*:", re.I),
-    re.compile(r"you are now\\s+(?:in\\s+)?(?:developer|admin|unrestricted)\\s+mode", re.I),
-    re.compile(r"bypass\\s+(?:all\\s+)?(?:safety|security|policy)\\s+(?:rules|filters)", re.I),
+    re.compile(r"ignore\s+(?:all\s+)?(?:previous|prior|above)\s+instructions", re.I),
+    re.compile(r"disregard\s+(?:everything|all|the instructions?).{0,50}(?:told|given|provided|said|earlier|before)", re.I),
+    re.compile(r"reveal\s+(?:the\s+)?(?:system prompt|hidden instructions)", re.I),
+    re.compile(r"(?:developer|system)\s+message\s*:", re.I),
+    re.compile(r"you are now\s+(?:in\s+)?(?:developer|admin|unrestricted)\s+mode", re.I),
+    re.compile(r"bypass\s+(?:all\s+)?(?:safety|security|policy)\s+(?:rules|filters)", re.I),
 ]
-EMAIL = re.compile(r"\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\b", re.I)
+EMAIL = re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.I)
 # Deliberately avoids plain digit-only identifiers and ISO-like dates.
-PHONE = re.compile(r"(?<![\\w])(?:\\+\\d{1,3}[ .()-]?)?(?:\\(?\\d{2,4}\\)?[ .-])\\d{3,4}[ .-]\\d{3,4}(?!\\w)")
+PHONE = re.compile(r"(?<![\w])(?:\+\d{1,3}[ .()-]?)?(?:\(?\d{2,4}\)?[ .-])\d{3,4}[ .-]\d{3,4}(?!\w)")
 SECRET_PATTERNS = [
     ("private_key", re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----")),
-    ("openai_key", re.compile(r"\\bsk-(?:proj-)?[A-Za-z0-9_-]{20,}\\b")),
-    ("github_token", re.compile(r"\\bgh[pousr]_[A-Za-z0-9]{20,}\\b")),
-    ("aws_access_key", re.compile(r"\\bAKIA[0-9A-Z]{16}\\b")),
-    ("slack_token", re.compile(r"\\bxox[baprs]-[A-Za-z0-9-]{10,}\\b")),
-    ("google_api_key", re.compile(r"\\bAIza[0-9A-Za-z_-]{30,}\\b")),
-    ("generic_bearer", re.compile(r"\\bBearer\\s+[A-Za-z0-9._~+/=-]{24,}", re.I)),
+    ("openai_key", re.compile(r"\bsk-(?:proj-)?[A-Za-z0-9_-]{20,}\b")),
+    ("github_token", re.compile(r"\bgh[pousr]_[A-Za-z0-9]{20,}\b")),
+    ("aws_access_key", re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
+    ("slack_token", re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{10,}\b")),
+    ("google_api_key", re.compile(r"\bAIza[0-9A-Za-z_-]{30,}\b")),
+    ("generic_bearer", re.compile(r"\bBearer\s+[A-Za-z0-9._~+/=-]{24,}", re.I)),
 ]
-DEFENSIVE_CONTEXT = re.compile(r"\\b(?:defen[cs]e|defensive|how do attackers|security awareness|explain defenses|detect prompt injection|prompt injection examples)\\b", re.I)
+DEFENSIVE_CONTEXT = re.compile(r"\b(?:defen[cs]e|defensive|how do attackers|security awareness|explain defenses|detect prompt injection|prompt injection examples)\b", re.I)
 
 
 def _normalize(text: str) -> tuple[str, list[int]]:
@@ -72,7 +72,7 @@ def scan_text(text: str) -> ScanResult:
                 if digits < 10 or digits > 15:
                     continue
                 context = normalized[max(0, match.start() - 24):match.start()].lower()
-                if re.search(r"(?:order|reference|ref|ticket|invoice|id)\\s*[:#-]?\\s*$", context):
+                if re.search(r"(?:order|reference|ref|ticket|invoice|id)\s*[:#-]?\s*$", context):
                     continue
             start = positions[match.start()]
             end = positions[match.end() - 1] + 1
