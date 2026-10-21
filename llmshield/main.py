@@ -26,7 +26,9 @@ async def request_limits(request: Request, call_next):
 
 def _authorized(provided: str | None) -> bool:
     expected = settings.api_key
-    return bool(expected) and bool(provided) and hmac.compare_digest(provided, expected)
+    if not expected or not provided:
+        return False
+    return hmac.compare_digest(provided, expected)
 
 
 @app.get("/health", response_model=HealthResponse)
