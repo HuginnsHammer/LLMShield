@@ -65,7 +65,6 @@ def scan_text(text: str, policy_rules: dict[Category, CategoryRule] | None = Non
                 continue
             findings.append(Finding(detector="heuristic_injection", category="prompt_injection", severity="high", message="Possible instruction override or prompt extraction attempt.", action=action_for("prompt_injection", "high", policy_rules), start=original_start, end=original_end))
 
-    pii_spans: list[tuple[int, int]] = []
     for label, pattern in (("email", EMAIL), ("phone", PHONE)):
         for match in pattern.finditer(normalized):
             if label == "phone":
