@@ -1,8 +1,10 @@
+from typing import Literal
+
 from llmshield.models import Finding
 from llmshield.policy import apply_mode, decide
 
 
-def finding(action: str) -> Finding:
+def finding(action: Literal["allow", "redact", "block", "review"]) -> Finding:
     return Finding(
         detector="test",
         category="prompt_injection" if action == "block" else "pii",
