@@ -2,11 +2,13 @@
 
 __version__ = "0.2.0"
 
+from .models import ScanResult
+
 
 class Shield:
     """Small library facade for scanning untrusted text."""
 
-    def scan(self, text: str):
+    def scan(self, text: str) -> ScanResult:
         """Return a ScanResult containing findings and sanitized text."""
         from .scanner import scan_text
 
