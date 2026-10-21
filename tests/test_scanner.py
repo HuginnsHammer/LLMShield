@@ -67,7 +67,7 @@ def test_yaml_policy_can_change_category_action(tmp_path):
     from llmshield.rules import load_policy_rules
 
     policy = tmp_path / "policy.yaml"
-    policy.write_text("categories:\\n  pii:\\n    action: block\\n", encoding="utf-8")
+    policy.write_text("categories:\n  pii:\n    action: block\n", encoding="utf-8")
     result = scan_text("Contact edward@example.com", load_policy_rules(str(policy)))
     assert result.blocked
     assert "edward@example.com" in result.sanitized_text
@@ -77,7 +77,7 @@ def test_yaml_policy_redacts_configured_secret(tmp_path):
     from llmshield.rules import load_policy_rules
 
     policy = tmp_path / "policy.yaml"
-    policy.write_text("categories:\\n  secret:\\n    action: redact\\n", encoding="utf-8")
+    policy.write_text("categories:\n  secret:\n    action: redact\n", encoding="utf-8")
     token = "ghp_" + "A" * 30
     result = scan_text("token=" + token, load_policy_rules(str(policy)))
     assert not result.blocked
