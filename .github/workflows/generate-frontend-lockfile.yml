@@ -1,0 +1,36 @@
+name: Generate frontend lockfile
+
+on:
+  push:
+    branches:
+      - build/generate-frontend-lockfile
+    paths:
+      - .github/workflows/generate-frontend-lockfile.yml
+
+permissions:
+  contents: write
+
+jobs:
+  lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: build/generate-frontend-lockfile
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Resolve and lock frontend dependencies
+        working-directory: frontend
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Commit generated lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/package-lock.json
+          if git diff --cached --quiet; then
+            echo "Lockfile is already up to date."
+          else
+            git commit -m "Generate frontend package lockfile"
+            git push origin HEAD:build/generate-frontend-lockfile
+          fi
