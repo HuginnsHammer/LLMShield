@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add an authenticated operational metrics endpoint and dashboard summaries for recent audit decisions, finding categories, and severities.
+- Lock frontend dependencies and use `npm ci` for reproducible CI and local installs.
+
 - Move the installable Python package to llmshield.
 - Add Unicode normalization and additional selected secret detectors.
 - Improve phone-number matching to avoid common date and numeric-reference false positives.
