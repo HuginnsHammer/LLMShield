@@ -67,6 +67,19 @@ export default function App() {
     }
   }
 
+
+  async function loadMetrics() {
+    setError("");
+    try {
+      const response = await fetch("/admin/metrics?limit=200", { headers: headers() });
+      const data: AuditMetrics | { detail?: string } = await response.json();
+      if (!response.ok) throw new Error("detail" in data ? data.detail || "Could not load metrics" : "Could not load metrics");
+      setMetrics(data as AuditMetrics);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Metrics endpoint unavailable");
+    }
+  }
+
   return (
     <main className="page">
       <header><div className="brand">◈ LLMShield <small>SECURITY GATEWAY</small></div><span className="status">● API {status}</span></header>
