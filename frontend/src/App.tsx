@@ -11,6 +11,14 @@ type GatewayResponse = {
   usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
 };
 type AuditEvent = { id: number; created_at: string; request_id: string; decision: string; provider: string; findings: Finding[] };
+type AuditMetrics = {
+  events_analyzed: number;
+  limit: number;
+  decision_counts: Record<string, number>;
+  category_counts: Record<string, number>;
+  severity_counts: Record<string, number>;
+};
+
 
 export default function App() {
   const [status, setStatus] = useState<"checking" | "online" | "offline">("checking");
@@ -18,6 +26,7 @@ export default function App() {
   const [apiKey, setApiKey] = useState("");
   const [result, setResult] = useState<GatewayResponse | null>(null);
   const [events, setEvents] = useState<AuditEvent[]>([]);
+  const [metrics, setMetrics] = useState<AuditMetrics | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -58,6 +67,19 @@ export default function App() {
     }
   }
 
+
+  async function loadMetrics() {
+    setError("");
+    try {
+      const response = await fetch("/admin/metrics?limit=200", { headers: headers() });
+      const data: AuditMetrics | { detail?: string } = await response.json();
+      if (!response.ok) throw new Error("detail" in data ? data.detail || "Could not load metrics" : "Could not load metrics");
+      setMetrics(data as AuditMetrics);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Metrics endpoint unavailable");
+    }
+  }
+
   return (
     <main className="page">
       <header><div className="brand">◈ LLMShield <small>SECURITY GATEWAY</small></div><span className="status">● API {status}</span></header>
@@ -89,7 +111,21 @@ export default function App() {
         <div className="buttons"><button className="secondary" onClick={loadAudit}>Load recent events</button></div>
         {events.map((event) => <div className="finding" key={event.id}><b>#{event.id} · {event.decision} · {event.provider}</b><p>{new Date(event.created_at).toLocaleString()} · {event.findings.length} finding(s)</p><small>{event.request_id}</small></div>)}
       </section>
-      <footer>Heuristic detection is not a guarantee of security. Review limitations before production deployment.</footer>
+
+      <section className="panel">
+        <small>04 / OPERATIONAL METRICS</small><h2>Recent detector trends</h2>
+        <p>Aggregate counts from up to 200 recent audit events. These are event totals, not rates or proof of detection accuracy.</p>
+        <div className="buttons"><button className="secondary" onClick={loadMetrics}>Refresh metrics</button></div>
+        {metrics && <>
+          <p className="metric-summary">Analyzed {metrics.events_analyzed} recent events (maximum {metrics.limit}).</p>
+          <div className="metrics-grid">
+            <div className="metric-card"><small>DECISIONS</small>{Object.entries(metrics.decision_counts).sort(([left], [right]) => left.localeCompare(right)).map(([name, count]) => <p key={name}><b>{name}</b><span>{count}</span></p>)}</div>
+            <div className="metric-card"><small>FINDINGS BY CATEGORY</small>{Object.entries(metrics.category_counts).sort(([left], [right]) => left.localeCompare(right)).map(([name, count]) => <p key={name}><b>{name}</b><span>{count}</span></p>)}</div>
+            <div className="metric-card"><small>FINDINGS BY SEVERITY</small>{Object.entries(metrics.severity_counts).sort(([left], [right]) => left.localeCompare(right)).map(([name, count]) => <p key={name}><b>{name}</b><span>{count}</span></p>)}</div>
+          </div>
+        </>}
+      </section>
+      <footer>Heuristic detection is not a guarantee of security. Metrics summarize recent audit metadata; they are not a security guarantee. Review limitations before production deployment.</footer>
     </main>
   );
 }

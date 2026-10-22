@@ -100,3 +100,29 @@ async def audit_events(limit: int = 50, x_api_key: str | None = Header(default=N
         raise HTTPException(status_code=401, detail="Valid LLMSHIELD_API_KEY is required.")
     events = await run_in_threadpool(audit.list_events, limit)
     return {"events": events}
+
+
+@app.get("/admin/metrics")
+async def audit_metrics(limit: int = 200, x_api_key: str | None = Header(default=None)):
+    """Return aggregate counts from recent metadata-only audit events."""
+    if not _authorized(x_api_key):
+        raise HTTPException(status_code=401, detail="Valid LLMSHIELD_API_KEY is required.")
+    events = await run_in_threadpool(audit.list_events, limit)
+    decisions: dict[str, int] = {}
+    categories: dict[str, int] = {}
+    severities: dict[str, int] = {}
+    for event in events:
+        decision = event.get("decision", "unknown")
+        decisions[decision] = decisions.get(decision, 0) + 1
+        for finding in event.get("findings", []):
+            category = finding.get("category", "unknown")
+            severity = finding.get("severity", "unknown")
+            categories[category] = categories.get(category, 0) + 1
+            severities[severity] = severities.get(severity, 0) + 1
+    return {
+        "events_analyzed": len(events),
+        "limit": max(1, min(limit, 200)),
+        "decision_counts": decisions,
+        "category_counts": categories,
+        "severity_counts": severities,
+    }
