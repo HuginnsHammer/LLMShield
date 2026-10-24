@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "slug": "llmshield",
+  "title": "LLMShield",
+  "repository": "HuginnsHammer/LLMShield",
+  "summary": "A security gateway prototype that inspects messages, applies configurable policy decisions, and records audit metadata without storing raw prompts or responses by default.",
+  "capabilities": [
+    "FastAPI chat endpoint with an OpenAI-style, non-streaming response envelope.",
+    "Heuristic checks for selected prompt-injection phrases, email and phone patterns, and selected secret formats, including common Unicode obfuscation.",
+    "Validated YAML policy configuration with allow, redact, block, and review actions, plus enforce and monitor modes.",
+    "Local deterministic mock provider; external model forwarding is disabled by default.",
+    "SQLite metadata-only audit events and an authenticated operational metrics endpoint summarizing recent decisions, finding categories, and severities.",
+    "React dashboard, Docker Compose setup, regression tests, and a synthetic evaluation harness."
+  ],
+  "evidence": [
+    "Repository README documents setup, architecture, policy configuration, evaluation, and limitations.",
+    "The synthetic evaluation reports precision, recall, false-positive rate, and false-negative rate per detector category; its small synthetic dataset is diagnostic, not a real-world benchmark."
+  ],
+  "limitations": [
+    "Detection is heuristic and can miss attacks or flag benign text.",
+    "Real provider forwarding, streaming, and a human-review queue are not implemented.",
+    "Redaction is not complete anonymization; shared-key authentication is a baseline rather than a full identity system."
+  ]
+}
