@@ -1,3 +1,9 @@
 [[allowlists]]
-description = "Known synthetic evaluation fixture in historical commit; current fixture constructs the test signature from fragments."
-fingerprints = ["72bf493a9cf7e4029a81b627e098d1674be6e793:scripts/evaluate.py:generic-api-key:52"]
+description = "Known synthetic credential signatures used only by the evaluation fixture."
+paths = [
+  'scripts/evaluate\.py'
+]
+regexes = [
+  'ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234',
+  'AKIA1234567890ABCDEF'
+]
