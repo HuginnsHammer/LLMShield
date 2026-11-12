@@ -15,7 +15,7 @@ jobs:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build image
         run: docker build -t llmshield:ci .
       - name: Scan image with Trivy
